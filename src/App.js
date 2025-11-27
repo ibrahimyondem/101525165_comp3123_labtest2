@@ -17,7 +17,7 @@ function App() {
     setLoading(true);
     setError("");
 
-    //Without any API KEY
+    // Check if API key exists
     if (!API_KEY) {
       setLoading(false);
       setError("Missing API key. Please add REACT_APP_WEATHER_API_KEY in .env.");
@@ -35,7 +35,19 @@ function App() {
       setWeatherData(response.data);
       setCity(cityName);
     } catch (err) {
-      setError("Could not load weather for that city.");
+      if (err.response) {
+        if (err.response.status === 401) {
+          setError("Invalid API key. Please check your REACT_APP_WEATHER_API_KEY.");
+        } else if (err.response.status === 404) {
+          setError("City not found. Please check the city name and try again.");
+        } else {
+          setError(`Error: ${err.response.data.message || "Could not load weather data."}`);
+        }
+      } else if (err.request) {
+        setError("Network error. Please check your internet connection.");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
